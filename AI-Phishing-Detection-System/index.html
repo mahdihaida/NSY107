@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Phishing Detector</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: #f4f6f8;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        background: #fff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+      }
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+      }
+      textarea {
+        width: 95%;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
+        font-size: 16px;
+        resize: vertical;
+        min-height: 100px;
+      }
+      button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      #result {
+        margin-top: 25px;
+        font-size: 18px;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      .safe {
+        background-color: #e8f8f5;
+        color: #1abc9c;
+        border: 1px solid #a3e4d7;
+      }
+      .phishing {
+        background-color: #fdedec;
+        color: #e74c3c;
+        border: 1px solid #f5b7b1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>AI-Based Phishing Detector</h1>
+      <textarea
+        id="emailText"
+        placeholder="Paste email content or URL here..."
+      ></textarea>
+      <button onclick="analyzeText()">Analyze</button>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      async function analyzeText() {
+        const text = document.getElementById("emailText").value;
+        const resultDiv = document.getElementById("result");
+        const apiKey = "your_secret_api_key";
+
+        if (!text) {
+          resultDiv.textContent = "Please enter some text to analyze.";
+          resultDiv.className = "";
+          return;
+        }
+
+        resultDiv.textContent = "Analyzing...";
+        resultDiv.className = "";
+
+        try {
+          const response = await fetch("http://127.0.0.1:8000/analyze", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-Key": apiKey,
+            },
+            body: JSON.stringify({ text: text }),
+          });
+
+          if (response.status === 401) {
+            throw new Error("Authentication failed. Check API Key.");
+          }
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          resultDiv.textContent = `Prediction: ${data.prediction} (Confidence: ${(data.confidence * 100).toFixed(2)}%)`;
+          if (data.prediction === "Safe") {
+            resultDiv.className = "safe";
+          } else {
+            resultDiv.className = "phishing";
+          }
+        } catch (error) {
+          resultDiv.textContent = `Error: ${error.message}`;
+          resultDiv.className = "phishing";
+        }
+      }
+    </script>
+  </body>
+</html>

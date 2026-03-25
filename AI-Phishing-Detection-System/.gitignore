@@ -1,0 +1,34 @@
+# Python files to ignore
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project-specific ignores
+model.pkl
+vectorizer.pkl
+eda_distribution.png
+.env
+.DS_Store
