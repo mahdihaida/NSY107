@@ -18,17 +18,17 @@ def load_models():
         print("Models missing! Training now...")
         try:
             subprocess.run(["python", "train_model.py"], check=True)
-            print("Training completed successfully.")
         except Exception as e:
             print(f"Auto-training failed: {e}")
             return
 
     try:
-        with open('model.pkl', 'rb') as model_file:
-            model = pickle.load(model_file)
-        with open('vectorizer.pkl', 'rb') as vectorizer_file:
-            vectorizer = pickle.load(vectorizer_file)
-        print("Models loaded successfully.")
+        if os.path.exists('model.pkl') and os.path.exists('vectorizer.pkl'):
+            with open('model.pkl', 'rb') as model_file:
+                model = pickle.load(model_file)
+            with open('vectorizer.pkl', 'rb') as vectorizer_file:
+                vectorizer = pickle.load(vectorizer_file)
+            print("Models loaded successfully.")
     except Exception as e:
         print(f"Error loading models: {e}")
 
@@ -46,8 +46,9 @@ def get_api_key(api_key: str = Depends(api_key_header)):
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API Key")
 
 # --- FastAPI App ---
-app = FastAPI(title="Phishing Detection API", version="1.0.0")
+app = FastAPI(title="Phishing Detection API")
 
+# VERY IMPORTANT: CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -65,7 +66,7 @@ class AnalysisResponse(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "API is running. Use /analyze for phishing detection."}
+    return {"status": "online", "message": "Phishing Detection API is running successfully!"}
 
 @app.post("/analyze", response_model=AnalysisResponse, dependencies=[Depends(get_api_key)])
 def analyze_text(request: AnalysisRequest):
@@ -73,14 +74,16 @@ def analyze_text(request: AnalysisRequest):
     if model is None or vectorizer is None:
         load_models()
         if model is None or vectorizer is None:
-            raise HTTPException(status_code=500, detail="Models not available.")
+            raise HTTPException(status_code=500, detail="Model files not found on server.")
 
-    text_tfidf = vectorizer.transform([request.text])
-    prediction_label = model.predict(text_tfidf)[0]
-    confidence = model.predict_proba(text_tfidf).max()
-    result = "Phishing" if prediction_label == 1 else "Safe"
-
-    return {"prediction": result, "confidence": confidence}
+    try:
+        text_tfidf = vectorizer.transform([request.text])
+        prediction_label = model.predict(text_tfidf)[0]
+        confidence = model.predict_proba(text_tfidf).max()
+        result = "Phishing" if prediction_label == 1 else "Safe"
+        return {"prediction": result, "confidence": float(confidence)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
