@@ -23,8 +23,11 @@ sns.countplot(x='label', data=df, palette='viridis')
 plt.title('Distribution of Safe vs Phishing Emails')
 plt.xlabel('Label (0: Safe, 1: Phishing)')
 plt.ylabel('Count')
-plt.savefig('eda_distribution.png')
-print("EDA chart saved as 'eda_distribution.png'.")
+try:
+    plt.savefig('eda_distribution.png')
+    print("EDA chart saved as 'eda_distribution.png'.")
+except Exception as e:
+    print(f"Skipping visualization save: {e}")
 
 # Preprocessing
 X = df['text']
