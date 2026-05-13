@@ -3,6 +3,7 @@ import os
 import subprocess
 import pickle
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from fastapi.security import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -66,7 +67,7 @@ class AnalysisResponse(BaseModel):
 
 @app.get("/")
 def home():
-    return {"status": "online", "message": "Phishing Detection API is running successfully!"}
+    return FileResponse("index.html")
 
 @app.post("/analyze", response_model=AnalysisResponse, dependencies=[Depends(get_api_key)])
 def analyze_text(request: AnalysisRequest):
